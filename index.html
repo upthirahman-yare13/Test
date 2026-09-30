@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="so">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ApexAnalytics AI Enterprise Platform</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { background-color: #080c14; color: #f3f4f6; font-family: system-ui, -apple-system, sans-serif; }
+    .glass { background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    .glass-card { background: rgba(30, 41, 59, 0.5); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+    .pulse-mic { animation: pulse 1.5s infinite; }
+    @keyframes pulse { 
+      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 
+      70% { transform: scale(1.1); box-shadow: 0 0 0 14px rgba(239, 68, 68, 0); } 
+      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } 
+    }
+  </style>
+</head>
+<body class="p-4 md:p-8 min-h-screen">
+
+  <!-- Header -->
+  <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 glass p-6 rounded-2xl shadow-2xl">
+    <div>
+      <div class="flex items-center gap-3">
+        <div class="p-3 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-xl shadow-lg shadow-blue-500/30">
+          <i class="fa-solid fa-brain text-white text-2xl"></i>
+        </div>
+        <div>
+          <h1 class="text-2xl md:text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">
+            ApexAnalytics AI Enterprise
+          </h1>
+          <p class="text-gray-400 text-xs md:text-sm">Real-time Data Intelligence, Somali Voice AI & Multi-Chart Engine</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="flex flex-wrap items-center gap-3">
+      <button id="micBtn" onclick="toggleVoiceAI()" class="flex items-center gap-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white px-4 py-2.5 rounded-xl font-medium transition shadow-lg shadow-red-500/20 text-sm">
+        <i id="micIcon" class="fa-solid fa-microphone"></i>
+        <span id="micText">Codka AI-da (Somali)</span>
+      </button>
+      <button onclick="exportCSV()" class="bg-blue-600/80 hover:bg-blue-600 text-white px-4 py-2.5 rounded-xl font-medium transition text-sm flex items-center gap-2">
+        <i class="fa-solid fa-file-csv"></i>Export CSV
+      </button>
+      <button onclick="openSaaSModal()" class="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white px-4 py-2.5 rounded-xl font-semibold transition text-sm flex items-center gap-2 shadow-lg shadow-orange-500/20">
+        <i class="fa-solid fa-crown"></i>SaaS Pro Plan
+      </button>
+    </div>
+  </header>
+
+  <!-- KPI Metrics Bar -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="glass p-5 rounded-2xl relative overflow-hidden">
+      <p class="text-gray-400 text-xs font-semibold uppercase tracking-wider">Total Revenue (Wadarta Iibka)</p>
+      <h3 id="kpiRevenue" class="text-2xl md:text-3xl font-black text-white mt-2">$0.00</h3>
+      <span class="text-emerald-400 text-xs font-semibold flex items-center gap-1 mt-2">
+        <i class="fa-solid fa-arrow-trend-up"></i> +18.4% Korodh
+      </span>
+    </div>
+    <div class="glass p-5 rounded-2xl">
+      <p class="text-gray-400 text-xs font-semibold uppercase tracking-wider">Total Transactions (Muuqashada)</p>
+      <h3 id="kpiTx" class="text-2xl md:text-3xl font-black text-white mt-2">0</h3>
+      <span class="text-emerald-400 text-xs font-semibold flex items-center gap-1 mt-2">
+        <i class="fa-solid fa-check-double"></i> Hawgalladii la qabay
+      </span>
+    </div>
+    <div class="glass p-5 rounded-2xl">
+      <p class="text-gray-400 text-xs font-semibold uppercase tracking-wider">Avg Margin (Paafeeto)</p>
+      <h3 id="kpiMargin" class="text-2xl md:text-3xl font-black text-white mt-2">$0.00</h3>
+      <span class="text-indigo-400 text-xs font-semibold flex items-center gap-1 mt-2">
+        <i class="fa-solid fa-chart-line"></i> Celcelis ahaan
+      </span>
+    </div>
+    <div class="glass p-5 rounded-2xl border border-amber-500/20">
+      <p class="text-gray-400 text-xs font-semibold uppercase tracking-wider">Anomaly Score (Dhacdo Tuhun)</p>
+      <h3 id="kpiAnomaly" class="text-2xl md:text-3xl font-black text-amber-400 mt-2">0.00</h3>
+      <span class="text-amber-400 text-xs font-semibold flex items-center gap-1 mt-2">
+        <i class="fa-solid fa-shield-cat"></i> AI Auto-Detector
+      </span>
+    </div>
+  </div>
+
+  <!-- Form & Multi-Charts Layout -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+    
+    <!-- Manual Input Form -->
+    <div class="glass p-6 rounded-2xl lg:col-span-1 flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-pen-to-square text-blue-400"></i> Gacanta ku buuxi Xogta
+          </h2>
+          <span class="text-xs bg-blue-500/20 text-blue-300 px-2.5 py-1 rounded-full">Custom Text Input</span>
+        </div>
+        
+        <form id="dataForm" onsubmit="handleAddData(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1">Region / Deegaanka</label>
+            <input type="text" id="inputRegion" placeholder="e.g. Banadir, Puntland, Somaliland" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition">
+          </div>
+          
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1">Category (Nooca - Ku qor gacanta)</label>
+            <input type="text" id="inputCategory" placeholder="e.g. Pharmacy, Software, Medical Equipment, Logistics" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition">
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-gray-400 mb-1">Revenue ($)</label>
+              <input type="number" step="0.01" id="inputRevenue" placeholder="1500.00" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-400 mb-1">Margin ($)</label>
+              <input type="number" step="0.01" id="inputMargin" placeholder="450.00" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1">Transactions Count</label>
+            <input type="number" id="inputTx" placeholder="25" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition">
+          </div>
+
+          <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 rounded-xl transition shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2">
+            <i class="fa-solid fa-plus"></i> Kaydi Xogta Cusub
+          </button>
+        </form>
+      </div>
+
+      <!-- Quick Commands Guidance -->
+      <div class="mt-6 p-4 glass-card rounded-xl border border-indigo-500/20">
+        <p class="text-xs font-bold text-indigo-300 mb-1"><i class="fa-solid fa-lightbulb text-amber-400 mr-1"></i> Codka Soomaaliga ee AI-da:</p>
+        <p class="text-xs text-gray-400">Rux ama taabo mic-ka oo dheh: <span class="text-white italic">"Wadarta iibka miyaa sare u kacay?"</span> ama <span class="text-white italic">"Warbixin iga siiya xogta maanta"</span>.</p>
+      </div>
+    </div>
+
+    <!-- Charts Container (Multi-Chart View) -->
+    <div class="glass p-6 rounded-2xl lg:col-span-2 space-y-6">
+      
+      <!-- Top Chart: Category Bar -->
+      <div>
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="text-sm font-bold text-gray-200 flex items-center gap-2">
+            <i class="fa-solid fa-chart-column text-indigo-400"></i> Revenue by Manual Category
+          </h3>
+          <span class="text-xs text-gray-400">Interactive Bar Graph</span>
+        </div>
+        <div class="relative h-52">
+          <canvas id="categoryChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Bottom Charts Grid: Line & Doughnut -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-800">
+        <div>
+          <h3 class="text-xs font-bold text-gray-300 mb-2 flex items-center gap-2">
+            <i class="fa-solid fa-chart-line text-emerald-400"></i> Revenue Trend (Xogta Socota)
+          </h3>
+          <div class="relative h-44">
+            <canvas id="trendChart"></canvas>
+          </div>
+        </div>
+        <div>
+          <h3 class="text-xs font-bold text-gray-300 mb-2 flex items-center gap-2">
+            <i class="fa-solid fa-chart-pie text-purple-400"></i> Regional Distribution (Deegaannada)
+          </h3>
+          <div class="relative h-44">
+            <canvas id="regionChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Table, AI Voice History & Audit Log -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+    
+    <!-- Recorded Data Table -->
+    <div class="glass p-6 rounded-2xl lg:col-span-2">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-database text-emerald-400"></i> Xogta Kaydsan (Data Entries)
+        </h2>
+        <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Raadi Region ama Category..." class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+      </div>
+      
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-gray-300">
+          <thead class="bg-slate-800/80 text-gray-400 text-xs uppercase font-semibold">
+            <tr>
+              <th class="p-3">Deegaanka</th>
+              <th class="p-3">Category (Nooca)</th>
+              <th class="p-3">Revenue</th>
+              <th class="p-3">Margin</th>
+              <th class="p-3">Tx</th>
+              <th class="p-3 text-right">Hawlgal</th>
+            </tr>
+          </thead>
+          <tbody id="dataTableBody" class="divide-y divide-slate-800 text-xs">
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- AI Voice Assistant History & Audit Log -->
+    <div class="glass p-6 rounded-2xl lg:col-span-1 flex flex-col justify-between">
+      <div>
+        <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-microphone-lines text-rose-400"></i> Somali Voice AI & History
+        </h2>
+        <div id="aiVoiceLog" class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 text-xs text-gray-300 h-64 overflow-y-auto space-y-2">
+          <p class="text-gray-500 italic">Somalida AI Voice Assistant waa diyaar. Taabo mic-ka ama wax buuxi si uu cod Soomaali ah ugu falanqeeyo...</p>
+        </div>
+      </div>
+      
+      <button onclick="clearHistoryLog()" class="mt-4 w-full bg-slate-800 hover:bg-slate-700 text-gray-300 text-xs py-2 rounded-xl transition">
+        Kawasag History Log-ga
+      </button>
+    </div>
+
+  </div>
+
+  <!-- SaaS Pricing Modal -->
+  <div id="saasModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4 z-50">
+    <div class="glass p-8 rounded-3xl max-w-md w-full border border-amber-500/30 text-center">
+      <div class="w-16 h-16 bg-gradient-to-tr from-amber-500 to-orange-600 rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-xl shadow-amber-500/30">
+        <i class="fa-solid fa-gem text-white text-3xl"></i>
+      </div>
+      <h3 class="text-2xl font-black text-white mb-2">ApexAnalytics Enterprise Pro</h3>
+      <p class="text-gray-400 text-xs mb-6">U roog nidaamkan SaaS ganacsi ah oo ka meel gaar $49/month shirkadaha u baahan Data Analytics + Somali Voice AI Engine.</p>
+      
+      <div class="space-y-3 text-left text-xs text-gray-300 mb-6 bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+        <p class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-400"></i> Multi-Tenant Firebase Database Support</p>
+        <p class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-400"></i> High-Speed Somali Voice Assistant (TTS)</p>
+        <p class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-400"></i> Unlimited Custom Data Entries & Charts</p>
+      </div>
+
+      <div class="flex gap-3">
+        <button onclick="closeSaaSModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-gray-300 text-xs py-3 rounded-xl font-semibold">Xir Window-ga</button>
+        <button onclick="alert('Demo SaaS Subscription Triggered!')" class="flex-1 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 text-white text-xs py-3 rounded-xl font-bold shadow-lg shadow-orange-500/25">Habayso Billing-ka</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initial Dataset
+    let analyticsData = [
+      { id: 1, region: 'Banadir', category: 'Pharmacy', revenue: 5400, margin: 1600, transactions: 92 },
+      { id: 2, region: 'Puntland', category: 'Software Licenses', revenue: 3800, margin: 1200, transactions: 45 },
+      { id: 3, region: 'Somaliland', category: 'Logistics', revenue: 2900, margin: 850, transactions: 38 },
+      { id: 4, region: 'Jubbaland', category: 'Medical Equipment', revenue: 4100, margin: 1100, transactions: 51 }
+    ];
+
+    let categoryChartInstance = null;
+    let trendChartInstance = null;
+    let regionChartInstance = null;
+    let isListening = false;
+
+    // Render Metrics
+    function renderMetrics() {
+      const totalRev = analyticsData.reduce((acc, item) => acc + item.revenue, 0);
+      const totalTx = analyticsData.reduce((acc, item) => acc + item.transactions, 0);
+      const avgMargin = analyticsData.length ? (analyticsData.reduce((acc, item) => acc + item.margin, 0) / analyticsData.length) : 0;
+      
+      // Calculate Anomaly Score (outlier check)
+      const anomalyScore = analyticsData.some(d => d.revenue > 10000 || d.margin < 0) ? 0.85 : 0.02;
+
+      document.getElementById('kpiRevenue').innerText = '$' + totalRev.toLocaleString('en-US', {minimumFractionDigits: 2});
+      document.getElementById('kpiTx').innerText = totalTx.toLocaleString();
+      document.getElementById('kpiMargin').innerText = '$' + avgMargin.toLocaleString('en-US', {minimumFractionDigits: 2});
+      document.getElementById('kpiAnomaly').innerText = anomalyScore;
+    }
+
+    // Render Table
+    function renderTable(dataToRender = analyticsData) {
+      const tbody = document.getElementById('dataTableBody');
+      tbody.innerHTML = '';
+      dataToRender.forEach((row) => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-800/50 transition";
+        tr.innerHTML = `
+          <td class="p-3 font-medium text-white">${row.region}</td>
+          <td class="p-3"><span class="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded text-xs">${row.category}</span></td>
+          <td class="p-3 text-emerald-400 font-semibold">$${row.revenue.toLocaleString()}</td>
+          <td class="p-3">$${row.margin.toLocaleString()}</td>
+          <td class="p-3">${row.transactions}</td>
+          <td class="p-3 text-right">
+            <button onclick="deleteRecord(${row.id})" class="text-rose-400 hover:text-rose-300 transition p-1"><i class="fa-solid fa-trash-can"></i></button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Render All Charts
+    function renderCharts() {
+      // 1. Bar Chart (Category)
+      const catCtx = document.getElementById('categoryChart').getContext('2d');
+      const catMap = {};
+      analyticsData.forEach(item => { catMap[item.category] = (catMap[item.category] || 0) + item.revenue; });
+
+      if (categoryChartInstance) categoryChartInstance.destroy();
+      categoryChartInstance = new Chart(catCtx, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(catMap),
+          datasets: [{
+            label: 'Revenue ($)',
+            data: Object.values(catMap),
+            backgroundColor: 'rgba(99, 102, 241, 0.65)',
+            borderColor: '#6366f1',
+            borderWidth: 2,
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#9ca3af' }, grid: { display: false } },
+            y: { ticks: { color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+          }
+        }
+      });
+
+      // 2. Line Chart (Trend)
+      const trendCtx = document.getElementById('trendChart').getContext('2d');
+      if (trendChartInstance) trendChartInstance.destroy();
+      trendChartInstance = new Chart(trendCtx, {
+        type: 'line',
+        data: {
+          labels: analyticsData.map((_, i) => `Entry ${i+1}`),
+          datasets: [{
+            label: 'Revenue Stream',
+            data: analyticsData.map(d => d.revenue),
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            fill: true,
+            tension: 0.35
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#9ca3af' }, grid: { display: false } },
+            y: { ticks: { color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+          }
+        }
+      });
+
+      // 3. Doughnut Chart (Region)
+      const regCtx = document.getElementById('regionChart').getContext('2d');
+      const regMap = {};
+      analyticsData.forEach(item => { regMap[item.region] = (regMap[item.region] || 0) + item.revenue; });
+
+      if (regionChartInstance) regionChartInstance.destroy();
+      regionChartInstance = new Chart(regCtx, {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(regMap),
+          datasets: [{
+            data: Object.values(regMap),
+            backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'right', labels: { color: '#9ca3af', font: { size: 10 } } } }
+        }
+      });
+    }
+
+    // Add Data Form Handler
+    function handleAddData(e) {
+      e.preventDefault();
+      const region = document.getElementById('inputRegion').value;
+      const category = document.getElementById('inputCategory').value;
+      const revenue = parseFloat(document.getElementById('inputRevenue').value);
+      const margin = parseFloat(document.getElementById('inputMargin').value);
+      const transactions = parseInt(document.getElementById('inputTx').value);
+
+      const newEntry = { id: Date.now(), region, category, revenue, margin, transactions };
+      analyticsData.push(newEntry);
+
+      renderMetrics();
+      renderTable();
+      renderCharts();
+
+      const msg = `Xog cusub ayaa la dhex giliyay: ${category} oo laga helay ${region} lehna iib $${revenue}.`;
+      logAIVoice(msg);
+      speakSomaliText(`Xogta ${category} si guul leh ayaa loo kaydiyay.`);
+
+      document.getElementById('dataForm').reset();
+    }
+
+    // Delete Record
+    function deleteRecord(id) {
+      analyticsData = analyticsData.filter(d => d.id !== id);
+      renderMetrics();
+      renderTable();
+      renderCharts();
+      logAIVoice(`Xog la tirtiray ID: ${id}`);
+    }
+
+    // Search Filter
+    function handleSearch() {
+      const q = document.getElementById('searchInput').value.toLowerCase();
+      const filtered = analyticsData.filter(d => d.region.toLowerCase().includes(q) || d.category.toLowerCase().includes(q));
+      renderTable(filtered);
+    }
+
+    // Voice AI & Somali Text-to-Speech (TTS)
+    function logAIVoice(msg) {
+      const logBox = document.getElementById('aiVoiceLog');
+      const p = document.createElement('p');
+      p.className = "p-2 bg-slate-800/80 rounded-lg border-l-2 border-indigo-500 text-xs text-gray-200";
+      p.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
+      logBox.prepend(p);
+    }
+
+    function clearHistoryLog() {
+      document.getElementById('aiVoiceLog').innerHTML = '<p class="text-gray-500 italic">History log-ga waa la nadiifiyay...</p>';
+    }
+
+    function speakSomaliText(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const speech = new SpeechSynthesisUtterance(text);
+        speech.lang = 'so-SO'; // Somali language code preference
+        speech.rate = 0.95;
+        speech.pitch = 1;
+        window.speechSynthesis.speak(speech);
+      }
+    }
+
+    function toggleVoiceAI() {
+      const micBtn = document.getElementById('micBtn');
+      const micText = document.getElementById('micText');
+      
+      if (!isListening) {
+        isListening = true;
+        micBtn.classList.add('pulse-mic');
+        micText.innerText = "Layeelayaa...";
+        logAIVoice("Somali Voice AI waa active. Ku hadal waxaad raadinayso...");
+        speakSomaliText("Soo dhaweow! Waxaan diyaar u ahay inaan falanqeeyo xogtaada.");
+      } else {
+        isListening = false;
+        micBtn.classList.remove('pulse-mic');
+        micText.innerText = "Codka AI-da (Somali)";
+        logAIVoice("Voice AI waa la xiray.");
+      }
+    }
+
+    // Export CSV
+    function exportCSV() {
+      let csvContent = "data:text/csv;charset=utf-8,Region,Category,Revenue,Margin,Transactions\n";
+      analyticsData.forEach(row => {
+        csvContent += `${row.region},${row.category},${row.revenue},${row.margin},${row.transactions}\n`;
+      });
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "apex_analytics_enterprise_data.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // SaaS Modal Controls
+    function openSaaSModal() { document.getElementById('saasModal').classList.remove('hidden'); document.getElementById('saasModal').classList.add('flex'); }
+    function closeSaaSModal() { document.getElementById('saasModal').classList.add('hidden'); document.getElementById('saasModal').classList.remove('flex'); }
+
+    // Initial Execution
+    renderMetrics();
+    renderTable();
+    renderCharts();
+  </script>
+</body>
+</html>
